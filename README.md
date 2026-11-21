@@ -6,6 +6,8 @@
 
 A reproducible benchmark for replacing expensive panel-method aerodynamic solvers with small sklearn models, judged honestly against the 100-year-old closed-form baseline that's already in every aerospace textbook — plus a nonlinear lifting-line solver that lifts the 2D sectional polars to 3D finite-wing predictions.
 
+> **Planned for** [wildfire-vtol](https://github.com/raahimnawaz/wildfire-vtol), a simulated wildfire-mapping drone fleet, as its wing model through stall.
+
 **Headline 2D result.** On lift coefficient prediction, gradient boosting matches thin airfoil theory in the linear regime (R² 0.952 vs 0.950), pulls ahead through pre-stall (R² 0.89 vs 0.80), and stays useful into stall where thin airfoil theory collapses to **R² = −1.77**.
 
 ![CL: ML surrogate vs classical thin airfoil theory](figures/ml_vs_physics_cl.png)
