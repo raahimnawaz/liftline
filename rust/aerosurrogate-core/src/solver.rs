@@ -1,23 +1,6 @@
-//! Nonlinear lifting-line solver for a planar, unswept finite-span wing.
-//!
-//! Mirror of Python `aerosurrogate.lifting_line.solver`.
-//!
-//! Solves the Phillips-Snyder nonlinear LLT system
-//!
-//! ```text
-//! F_i(Γ) = Γ_i − ½ · V_∞ · c_i · Cl_section(α_eff_i(Γ), Re_i) = 0
-//! ```
-//!
-//! by Newton iteration with a finite-difference Jacobian and a backtracking
-//! line search. The Jacobian is
-//!
-//! ```text
-//! J_ij = δ_ij + ½ · c_i · a_i · W[i,j]
-//! ```
-//!
-//! where `a_i = dCl/dα` is the local lift-curve slope (1/rad) obtained by a
-//! one-sided FD on the sectional polar, and `W` is the horseshoe-vortex
-//! downwash kernel from [`crate::biot_savart`].
+//! Newton solver for `F_i(Γ) = Γ_i − ½·V·c_i·Cl(α_eff_i) = 0`, with
+//! Jacobian `J = I + diag(½·c·a)·W` (`a = dCl/dα` by finite difference)
+//! and a backtracking line search.
 
 use nalgebra::{DMatrix, DVector};
 
@@ -95,6 +78,11 @@ fn spanwise_integral(values: &DVector<f64>, y_edges: &DVector<f64>) -> f64 {
     sum
 }
 
+/// Relative residual `‖F‖∞ / max(‖Γ‖∞, 1)`.
+fn rel_residual(f: &DVector<f64>, gamma: &DVector<f64>) -> f64 {
+    f.amax() / gamma.amax().max(1.0)
+}
+
 /// Evaluate `F(Γ) = Γ − ½·V·c·Cl(α_eff)` and the intermediate fields.
 ///
 /// Returns `(F, w_i, alpha_eff_deg, cl_local)`.
@@ -120,9 +108,8 @@ fn eval_residual(
 
 /// Solve the nonlinear LLT system for a planar wing at a single α.
 ///
-/// Mirror of Python `solve_lifting_line`. Returns a fully-populated
-/// [`LiftingLineResult`] including the converged Γ distribution, sectional
-/// fields at α_eff, and the integrated CL/CDi/CD/e.
+/// Returns the converged Γ, the sectional fields at α_eff, and the
+/// integrated CL / CDi / CD / e.
 ///
 /// # Errors
 ///
@@ -178,7 +165,6 @@ pub fn solve_lifting_line_with_init(
     let mut converged = false;
     let mut iters = 0usize;
 
-    // Buffers reused across iterations.
     let mut j_mat = DMatrix::<f64>::zeros(n, n);
 
     for it in 1..=opts.max_iter {
@@ -192,10 +178,7 @@ pub fn solve_lifting_line_with_init(
             opts.v_inf,
             &re_arr,
         );
-        let gamma_inf = gamma.iter().fold(0.0_f64, |m, &x| m.max(x.abs()));
-        let f_inf = f.iter().fold(0.0_f64, |m, &x| m.max(x.abs()));
-        let residual = f_inf / gamma_inf.max(1.0);
-        if residual < opts.tol {
+        if rel_residual(&f, &gamma) < opts.tol {
             converged = true;
             break;
         }
@@ -209,8 +192,6 @@ pub fn solve_lifting_line_with_init(
         }
 
         // J = I + diag(½ · c · a) · W
-        // Build by scaling rows of W; faster than constructing diag mat.
-        j_mat.fill(0.0);
         for i in 0..n {
             let scale = 0.5 * chord[i] * a_local[i];
             for j in 0..n {
@@ -287,9 +268,7 @@ pub fn solve_lifting_line_with_init(
         f64::NAN
     };
 
-    let gamma_inf = gamma.iter().fold(0.0_f64, |m, &x| m.max(x.abs()));
-    let f_inf = f_final.iter().fold(0.0_f64, |m, &x| m.max(x.abs()));
-    let final_residual = f_inf / gamma_inf.max(1.0);
+    let final_residual = rel_residual(&f_final, &gamma);
 
     let alpha_induced_deg = &alpha_geom_deg - &alpha_eff;
 

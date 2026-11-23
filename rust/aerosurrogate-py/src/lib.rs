@@ -1,17 +1,6 @@
-//! PyO3 bindings for `aerosurrogate-core`.
-//!
-//! Exposes the LLT solver to Python under the module name `aerosurrogate_rs`.
-//! The Python tests/scripts can then do `from aerosurrogate_rs import Wing,
-//! solve_lifting_line, ...` and get the same numerical answers as the
-//! reference Python solver in `src/aerosurrogate.lifting_line.*`.
-//!
-//! Wrapping conventions:
-//!
-//! * Each Rust struct gets a `#[pyclass]` wrapper that owns the underlying
-//!   core type. Field access goes through `#[getter]`s, returning numpy
-//!   arrays where the core has `DVector<f64>`.
-//! * Sectional polar wrappers are thin shells over the core types; the
-//!   Python solver entry point dispatches on the section's runtime type.
+//! PyO3 bindings for `aerosurrogate-core`, imported as `aerosurrogate_rs`.
+//! The API mirrors the Python `aerosurrogate.lifting_line` package so the
+//! parity tests can run both on the same inputs.
 
 use aerosurrogate_core as core;
 use nalgebra::DVector;
@@ -293,6 +282,7 @@ struct PyLLResult {
 }
 
 #[pymethods]
+#[allow(non_snake_case)]  // names match the Python API
 impl PyLLResult {
     #[getter]
     fn CL(&self) -> f64 {
@@ -429,6 +419,7 @@ struct PyGlauertResult {
 }
 
 #[pymethods]
+#[allow(non_snake_case)]  // names match the Python API
 impl PyGlauertResult {
     #[getter]
     fn CL(&self) -> f64 {

@@ -1,28 +1,12 @@
-//! Classical Glauert Fourier-series lifting-line theory.
-//!
-//! Mirror of Python `aerosurrogate.lifting_line.classical`.
-//!
-//! For a planar, unswept wing with linear sectional lift slope `a₀` and
-//! zero-lift angle `α_{L=0}` (both constant along span), expand the bound
-//! circulation as a sine series in `θ = arccos(−2y/b)`:
-//!
-//! ```text
-//! Γ(θ) = 2 · b · V_∞ · Σ_{n odd} A_n · sin(n·θ)
-//! ```
-//!
-//! Substituting into the fundamental LLT equation and collocating at `M`
-//! points in `(0, π/2)` (symmetric loading uses odd modes only) gives the
-//! linear system
+//! Glauert Fourier-series lifting-line theory, used to cross-check the
+//! Newton solver. With a linear section polar, expand
+//! `Γ(θ) = 2·b·V·Σ_{n odd} A_n·sin(nθ)` with `θ = arccos(−2y/b)` and collocate
+//! at `M` points in `(0, π/2)`:
 //!
 //! ```text
 //! Σ_n A_n · [ 4b/(a₀ · c(θ_i)) · sin(n·θ_i) + n · sin(n·θ_i)/sin(θ_i) ]
 //!     = α_geom(θ_i) − α_{L=0}                      (rad)
 //! ```
-//!
-//! solved by a single LU decomposition. This is mathematically distinct
-//! from the Newton-iteration solver in [`crate::solver`]; for a linear
-//! sectional polar the two must agree to within discretization error,
-//! enforced by the `glauert_vs_newton` integration test.
 
 use nalgebra::{DMatrix, DVector};
 

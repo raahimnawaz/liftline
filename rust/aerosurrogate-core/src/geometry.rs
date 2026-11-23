@@ -1,22 +1,7 @@
 //! Wing geometry for planar, unswept lifting-line analysis.
 //!
-//! A [`Wing`] discretizes a finite-span planar wing into `N` spanwise stations
-//! with cosine spacing — denser at the tips where the loading varies fastest.
-//! Each station has a chord `c(y)` and a geometric twist `θ(y)`; per-station
-//! sectional aerodynamics are supplied separately via the [`crate::sections`]
-//! module.
-//!
-//! Mirror of Python `aerosurrogate.lifting_line.geometry`.
-//!
-//! Cosine spacing places the i-th control point at:
-//!
-//! ```text
-//! y_cp[i] = −(b/2) · cos((i + 0.5) · π / N)        for i = 0 … N−1
-//! ```
-//!
-//! with segment edges between adjacent control points (and tips clamped to
-//! ±b/2). This is the standard LLT grid: it concentrates resolution where
-//! `dΓ/dy` is largest and avoids placing a control point at the tip
+//! Stations are cosine-spaced, `y_cp[i] = −(b/2)·cos((i + 0.5)·π/N)`, which
+//! puts resolution near the tips and keeps control points off the tip
 //! singularity.
 
 use std::sync::Arc;

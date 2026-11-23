@@ -1,40 +1,15 @@
 //! # aerosurrogate-core
 //!
-//! Nonlinear lifting-line theory solver for planar, unswept finite-span
-//! wings, coupling any 2D sectional aerodynamic polar with the classical
-//! Prandtl induced-downwash kernel via Newton iteration in the modern
-//! Phillips & Snyder (2000) style.
+//! Nonlinear lifting-line solver for planar, unswept wings: any 2D section
+//! polar plus Prandtl's downwash kernel, solved by Newton iteration
+//! (Phillips & Snyder, 2000). A port of Python `aerosurrogate.lifting_line`
+//! that agrees with it to 1e-10; see `docs/WRITEUP.md` §7.
 //!
-//! This crate is a faithful Rust port of the Python `aerosurrogate.lifting_line`
-//! package, intended for embedded / real-time use where the Python
-//! implementation's millisecond-scale per-α latency is too slow. Numerical
-//! results agree with the Python reference to ≤ 1e-10 on every wing
-//! configuration in the test suite.
-//!
-//! ## Design
-//!
-//! Three layers:
-//!
-//! * [`geometry`] — `Wing` struct with [`Wing::rectangular`], [`Wing::elliptic`],
-//!   and [`Wing::tapered`] factory constructors. Cosine spanwise grid;
-//!   analytical chord/twist functions retained alongside the sampled
-//!   control-point values so the [`classical`] Glauert solver can evaluate
-//!   the planform exactly at its own collocation points.
-//! * [`sections`] — [`SectionalAero`] trait + analytical implementations
-//!   ([`sections::ThinAirfoilSection`], [`sections::FlatPlatePostStall`])
-//!   and the baked-in sklearn surrogates ([`surrogate::ridge`],
-//!   [`surrogate::gbm`]). All implementations are pure scalar arithmetic with
-//!   no allocation in the hot path.
-//! * [`solver`] — Newton iteration with a finite-difference Jacobian and
-//!   backtracking line search ([`solver::solve_lifting_line`]). An
-//!   independent reference implementation ([`classical::glauert_fourier_llt`])
-//!   solves the same problem by half-span Fourier-series collocation;
-//!   agreement between the two is enforced as an integration test.
-//!
-//! ## Status: skeleton
-//!
-//! Modules are stubbed and will be filled in following the order documented
-//! in `i-am-planning-on-vast-lampson.md`.
+//! * [`geometry`]: [`Wing`] and its rectangular / elliptic / tapered factories.
+//! * [`sections`]: the [`SectionalAero`] trait, analytical polars and the
+//!   baked-in Ridge surrogate ([`surrogate::ridge`]).
+//! * [`solver`]: Newton solver and α-sweep.
+//! * [`classical`]: independent Glauert Fourier-series solver for cross-checks.
 
 #![warn(missing_docs)]
 #![warn(clippy::all)]

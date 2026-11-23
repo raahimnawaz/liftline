@@ -1,29 +1,12 @@
-"""Demonstrate the nonlinear lifting-line solver on the three canonical wings.
+"""Regenerate the four lifting-line figures in figures/llt_*.png.
 
-Four artifacts:
+1. Elliptic AR 8 wing on the analytical line ``CDi = CL²/(π·AR)``.
+2. Rectangular AR 10 wing through stall (flat-plate polar).
+3. Span efficiency vs aspect ratio for three planforms.
+4. NACA 2412 AR 8 wing with NeuralFoil as the section polar (skipped
+   if neuralfoil is not installed).
 
-1. **Elliptic-wing identity figure** — ``CDi`` vs ``CL²`` for an AR=8 elliptic
-   wing on top of the analytical line ``CDi = CL² / (π · AR)``. The solver
-   trace must sit on top of the textbook line. This is the headline "the
-   solver is right" demo.
-2. **Lift-curve through stall** — ``CL(α)`` for a rectangular AR=10 wing
-   using the Hoerner flat-plate sectional polar. Demonstrates the nonlinear
-   solver gracefully handling stall and post-stall, which the linear LLT
-   cannot.
-3. **Span-efficiency vs aspect ratio** — comparison of elliptic, rectangular,
-   and tapered (λ=0.5) planforms across AR ∈ [4, 20]. Reproduces the
-   classical-LLT result that elliptic wings have ``e ≈ 1`` while rectangular
-   and tapered wings sit a few percent below.
-4. **NeuralFoil-coupled wing analysis** — ``CL(α)`` and the drag polar
-   ``CD(CL)`` for a NACA 2412 wing (AR=8, rectangular) with NeuralFoil
-   supplying the 2D viscous sectional polar. Generated only if ``neuralfoil``
-   is installed; this is the headline demonstration that the lifting-line
-   solver couples a data-driven 2D viscous model with classical 3D
-   inviscid wing theory to produce a viscous-3D drag buildup.
-
-Usage::
-
-    python scripts/llt_demo.py
+Usage: ``python scripts/llt_demo.py``
 """
 from __future__ import annotations
 

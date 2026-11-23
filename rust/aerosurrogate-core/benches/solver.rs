@@ -1,14 +1,5 @@
-//! Per-α latency benchmarks for the Rust LLT solver.
-//!
-//! Compares the analytical sectional polars (no allocation, pure scalar
-//! arithmetic) against the baked-in Ridge surrogate inside the same
-//! Newton-iteration solver. The headline number for the project's README
-//! comes from these benches.
-//!
-//! Run with:
-//!     cargo bench --bench solver
-//!
-//! Numbers go into rust/README.md and the main README's latency table.
+//! Per-α latency of the Rust solver with analytical and Ridge polars.
+//! Run with `cargo bench --bench solver`.
 
 use std::f64::consts::PI;
 

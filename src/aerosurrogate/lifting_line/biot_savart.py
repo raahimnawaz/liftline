@@ -1,36 +1,12 @@
-"""Downwash induction by a horseshoe-vortex sheet on a planar lifting line.
+"""Horseshoe-vortex downwash matrix for a planar lifting line.
 
-For an unswept, planar wing aligned with the y-axis (no sweep, no dihedral),
-the bound vortex of each horseshoe lies *on* the lifting line itself. A
-straight vortex induces no velocity on its own axis, so at any control
-point on the lifting line, the only contribution to the induced downwash
-comes from the two semi-infinite trailing legs of each horseshoe.
+On an unswept planar wing the bound vortices induce nothing on the line
+itself, so only the trailing legs count. Downwash is ``w = W·Γ`` with::
 
-For a horseshoe vortex with bound circulation ``Γ_j`` and spanwise endpoints
-``y_edge[j]`` (left) and ``y_edge[j+1]`` (right), the induced z-velocity at
-a point ``y_cp[i]`` on the lifting line — derived directly from Biot-Savart
-applied to two semi-infinite vortex filaments — is::
+    W[i,j] = (1/4π) · [1/(y_cp[i] − y_edge[j]) − 1/(y_cp[i] − y_edge[j+1])]
 
-    w_z(y_cp[i]) = −(Γ_j / 4π) · [1/(y_cp[i] − y_edge[j])
-                                   − 1/(y_cp[i] − y_edge[j+1])]
-
-Adopting the LLT sign convention where positive downwash means flow going
-downward (which reduces the effective angle of attack at the section),
-``w_i = −w_z``, giving the form used throughout this package::
-
-    w_i(y_cp[i]) = (Γ_j / 4π) · [1/(y_cp[i] − y_edge[j])
-                                   − 1/(y_cp[i] − y_edge[j+1])]
-
-Summing across all horseshoes and writing as a matrix-vector product::
-
-    w_i = W · Γ        where   W[i,j] = (1/4π) · [1/(y_cp[i] − y_edge[j])
-                                                   − 1/(y_cp[i] − y_edge[j+1])]
-
-The solver then needs only one O(N²) matrix-vector multiply per iteration.
-
-Reference: Anderson, *Fundamentals of Aerodynamics*, §5.3 (Prandtl's Classical
-Lifting-Line Theory); Phillips & Snyder, *J. Aircraft* 37 (4), 2000, for the
-nonlinear iterative form built on top of this kernel.
+(positive ``w`` is downward). Reference: Anderson, *Fundamentals of
+Aerodynamics*, §5.3.
 """
 from __future__ import annotations
 

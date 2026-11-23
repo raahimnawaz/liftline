@@ -1,20 +1,6 @@
-//! Sectional 2D aerodynamic polars for the lifting-line solver.
-//!
-//! Mirror of Python `aerosurrogate.lifting_line.sections`.
-//!
-//! The solver closes its nonlinear system by querying, at every spanwise
-//! station and every Newton iteration, a 2D sectional polar `Cl(α, Re)` and
-//! `Cd(α, Re)`. The solver does not care where the polar comes from — only
-//! that it implements the [`SectionalAero`] trait.
-//!
-//! Implementations in this module:
-//!
-//! * [`ThinAirfoilSection`] — closed-form `Cl = 2π · (α − α_{L=0})` with an
-//!   optional parabolic profile-drag model `Cd = Cd0 + k·(Cl − Cl_min)²`.
-//!   Used for the elliptic-wing analytical validation.
-//! * [`FlatPlatePostStall`] — Hoerner flat-plate polar `Cl = sin(2α)`,
-//!   `Cd = 2sin²(α) + Cd0`. Has an analytical stall at α = 45°, used to
-//!   exercise the nonlinear solver post-stall.
+//! 2D section polars: the [`SectionalAero`] trait, a thin-airfoil polar, a
+//! Hoerner flat-plate polar with analytic stall at 45°, and the baked-in
+//! Ridge surrogate.
 
 use nalgebra::DVector;
 
@@ -133,10 +119,9 @@ impl SectionalAero for FlatPlatePostStall {
 /// Geometric features are fixed at construction so the [`SectionalAero`]
 /// interface only varies α (and Re) at runtime.
 ///
-/// This is the headline ML surrogate from the Python `aerosurrogate.models`
-/// zoo, baked into the Rust binary as `pub const` arrays via
-/// `rust/scripts/export_ridge_weights.py`. No Python interpreter, no sklearn,
-/// no allocation in the hot path; one query is ~200 multiply-adds.
+/// The trained Poly-2 Ridge pipeline, compiled in as `pub const` arrays by
+/// `rust/scripts/export_ridge_weights.py`. Each station's evaluation is
+/// allocation-free scalar arithmetic.
 #[derive(Debug, Clone, Copy)]
 pub struct RidgeSurrogateSection {
     /// Fixed geometric features baked at construction (length 8).

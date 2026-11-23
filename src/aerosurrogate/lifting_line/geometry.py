@@ -1,29 +1,9 @@
 """Wing geometry for planar, unswept lifting-line analysis.
 
-A ``Wing`` discretizes a finite-span planar wing into ``N`` spanwise stations
-with cosine spacing — denser at the tips where the loading varies fastest.
-Each station has a chord ``c(y)`` and a geometric twist ``θ(y)``; per-station
-sectional aerodynamics are supplied separately via the ``sections`` module.
-
-Cosine spacing places the i-th control point at::
-
-    y_cp[i] = −(b/2) · cos((i + 0.5) · π / N)        for i = 0 … N−1
-
-with segment edges between adjacent control points (and tips clamped to
-``±b/2``). This is the standard LLT grid: it concentrates resolution where
-``dΓ/dy`` is largest and avoids placing a control point at the tip
-singularity.
-
-Factory methods cover the three canonical planforms used to validate the
-solver:
-
-* :py:meth:`Wing.rectangular` — constant chord. Classical LLT predicts
-  span efficiency ``e ≈ 0.88 – 0.96`` depending on aspect ratio.
-* :py:meth:`Wing.elliptic` — chord ``c(y) = c_root · √(1 − (2y/b)²)``.
-  Yields the analytical identity ``CDi = CL² / (π · AR)`` exactly, i.e.
-  ``e = 1``. This is *the* test case for any LLT implementation.
-* :py:meth:`Wing.tapered` — linear taper from root to tip, optionally with
-  linear washout (twist varying linearly with span).
+Stations are cosine-spaced, ``y_cp[i] = −(b/2)·cos((i + 0.5)·π/N)``, which
+puts resolution near the tips and keeps control points off the tip
+singularity. Factories: rectangular, elliptic (``e = 1`` exactly) and
+tapered with optional linear washout.
 """
 from __future__ import annotations
 

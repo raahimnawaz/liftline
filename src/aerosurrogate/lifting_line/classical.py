@@ -1,29 +1,9 @@
-"""Classical Glauert Fourier-series lifting-line theory.
+"""Glauert Fourier-series lifting-line theory (Glauert 1926; Anderson §5.3).
 
-This is the textbook formulation of Prandtl-Glauert LLT: assume a linear
-sectional polar ``Cl = a₀·(α − α_{L=0})``, expand the circulation as a
-Fourier sine series in the transformed coordinate ``θ = arccos(−2y/b)``,
-and collocate at ``M`` points to get an ``M × M`` linear system for the
-Fourier coefficients ``{A_n}``.
-
-The whole machinery sits in roughly 60 lines because the linearity assumption
-on the sectional polar collapses the nonlinear LLT system into a single
-linear solve. It exists in this package for one reason: as an **independent
-cross-validation** of the Newton-iteration solver in :mod:`solver`. The
-two formulations are mathematically distinct — Fourier-series collocation
-vs. horseshoe-vortex discretization with Newton iteration — but for a
-linear sectional polar they must agree to within discretization error.
-That agreement is enforced as a unit test in
-``tests/test_lifting_line.py::test_newton_matches_glauert_*``.
-
-References
-----------
-* Glauert, H., *The Elements of Aerofoil and Airscrew Theory*, Cambridge
-  Univ. Press, 1926/1948, §11 ("The Monoplane Aerofoil").
-* Anderson, J. D., *Fundamentals of Aerodynamics*, 6th ed., McGraw-Hill,
-  2017, §5.3 ("Prandtl's Classical Lifting-Line Theory").
-* Bertin & Cummings, *Aerodynamics for Engineers*, 6th ed., Pearson, 2014,
-  §7.4 ("Lifting-Line Theory for Unswept Wings").
+Assumes a linear section polar, expands Γ as a sine series in
+``θ = arccos(−2y/b)``, and solves one M×M collocation system. It shares no
+discretization with the Newton solver in :mod:`solver`, so agreement between
+the two (``tests/test_lifting_line.py``) is an independent check.
 """
 from __future__ import annotations
 

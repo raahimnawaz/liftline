@@ -18,7 +18,7 @@ classifiers = [
 dynamic = ["version"]
 
 [project.urls]
-Homepage = "https://github.com/raahimnawaz/aerospace-surrogate"
+Homepage = "https://github.com/raahimnawaz/liftline"
 
 [tool.maturin]
 module-name = "aerosurrogate_rs"

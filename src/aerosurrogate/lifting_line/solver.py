@@ -1,43 +1,9 @@
-"""Nonlinear lifting-line solver for a planar, unswept finite-span wing.
+"""Nonlinear lifting-line solver for a planar, unswept wing (Phillips & Snyder, 2000).
 
-Combines a 2D sectional polar (any :class:`SectionalAero`) with the
-classical induced-downwash kernel from :mod:`biot_savart` to give a
-viscous, post-stall-capable wing solver. The form follows the *modern*
-(i.e. iterated nonlinear) lifting-line theory of Phillips & Snyder,
-*Journal of Aircraft* 37 (4), 2000, specialized here to the planar /
-unswept / no-dihedral case so the bound vortex induces no in-plane
-velocity and the kernel reduces to the 1-D Cauchy form.
-
-Why nonlinear LLT? Classical (linear) LLT assumes ``Cl = a₀ · (α − α_{L=0})``
-with constant lift-curve slope ``a₀``. That breaks once any section enters
-stall: ``Cl`` is no longer linear in ``α``. Nonlinear LLT lets the
-sectional polar be arbitrary — including stalled — and finds the
-self-consistent circulation distribution by Newton iteration. With a
-viscous sectional polar (NeuralFoil, XFOIL, wind-tunnel data) it produces
-3D wing predictions that include profile drag, induced drag, *and* stall
-behavior at the cost of one N×N linear solve per iteration.
-
-Governing system
-----------------
-
-At every spanwise station ``i`` the bound circulation ``Γ_i`` must be
-consistent with the 2D Kutta-Joukowski relation::
-
-    F_i(Γ) ≡ Γ_i − ½ · V_∞ · c_i · Cl_section(α_eff_i, Re_i)   =   0    (*)
-
-where ``α_eff_i = α_∞ + θ_i − α_induced_i`` and ``α_induced_i = w_i / V_∞``
-with ``w = W · Γ`` the downwash from :func:`biot_savart.downwash_matrix`.
-
-Newton iteration on the nonlinear system (*) uses the Jacobian::
-
-    J_ij = ∂F_i/∂Γ_j = δ_ij + ½ · c_i · a_i · W[i,j]
-
-where ``a_i = dCl/dα`` evaluated at the current ``α_eff_i`` (in 1/rad).
-We obtain ``a_i`` by a one-sided finite difference on the sectional polar
-so this works with *any* :class:`SectionalAero` — even a black-box
-NeuralFoil. Per iteration we solve one N×N linear system; convergence is
-quadratic when the polar is smooth and stays robust through stall with a
-single line-search safeguard.
+Newton iteration on ``F_i(Γ) = Γ_i − ½·V·c_i·Cl(α_eff_i) = 0`` with
+Jacobian ``J = I + diag(½·c·a)·W``, where ``a = dCl/dα`` is a finite
+difference on the section polar, so any polar works. Derivation and
+validation: docs/WRITEUP.md §5–6.
 """
 from __future__ import annotations
 
@@ -86,7 +52,7 @@ class LiftingLineResult:
     iterations
         Number of Newton steps performed.
     residual
-        Final residual ``‖F(Γ)‖∞``.
+        Final relative residual ``‖F(Γ)‖∞ / max(‖Γ‖∞, 1)``.
     """
     Gamma: NDArray[np.float64]
     alpha_eff_deg: NDArray[np.float64]
@@ -227,8 +193,7 @@ def solve_lifting_line(
             # Stagnant: nudge with a damped gradient step and continue.
             dGamma = 0.1 * F
 
-        # Backtracking line search: shrink step until residual decreases.
-        # Robust across stall where the linear model overshoots.
+        # Backtracking line search: halve the step until the residual drops.
         step = 1.0
         F_norm = float(np.linalg.norm(F))
         for _bt in range(8):
@@ -245,8 +210,7 @@ def solve_lifting_line(
             # so iteration keeps moving (typical in deep stall with shallow slope).
             Gamma = Gamma - step * dGamma
 
-    # Final post-processing using the converged Γ.
-    _, w_i, alpha_eff, cl_local = _eval_residual(
+    F_final, w_i, alpha_eff, cl_local = _eval_residual(
         Gamma, alpha_geom_section, chord, W, section, V_inf, Re_arr
     )
     cd_local = np.asarray(section.cd(alpha_eff, Re_arr), dtype=np.float64)
@@ -263,9 +227,6 @@ def solve_lifting_line(
     else:
         e = float("nan")
 
-    F_final, *_ = _eval_residual(
-        Gamma, alpha_geom_section, chord, W, section, V_inf, Re_arr
-    )
     final_residual = float(np.max(np.abs(F_final)) / max(float(np.max(np.abs(Gamma))), 1.0))
 
     return LiftingLineResult(

@@ -1,26 +1,9 @@
-//! Horseshoe-vortex downwash induction on the lifting line.
-//!
-//! Mirror of Python `aerosurrogate.lifting_line.biot_savart`.
-//!
-//! For an unswept, planar wing aligned with the y-axis, the bound vortex of
-//! each horseshoe lies on the lifting line. A straight vortex induces no
-//! velocity on its own axis, so at any control point on the lifting line
-//! the only contribution to the induced downwash comes from the two
-//! semi-infinite trailing legs of each horseshoe.
-//!
-//! For a horseshoe with bound circulation `Γ_j` and spanwise endpoints
-//! `y_edge[j]` (left) and `y_edge[j+1]` (right), the induced downwash at a
-//! control point `y_cp[i]` is, from Biot-Savart on two semi-infinite vortex
-//! filaments and the LLT sign convention (positive downwash means flow going
-//! downward, reducing the section's effective angle of attack):
+//! Horseshoe-vortex downwash matrix. Only the trailing legs induce
+//! downwash on a planar lifting line, giving `w = W·Γ` with
 //!
 //! ```text
-//! w_i(y_cp[i]) = (Γ_j / 4π) · [1/(y_cp[i] − y_edge[j])
-//!                              − 1/(y_cp[i] − y_edge[j+1])]
+//! W[i,j] = (1/4π) · [1/(y_cp[i] − y_edge[j]) − 1/(y_cp[i] − y_edge[j+1])]
 //! ```
-//!
-//! Summing across all horseshoes gives `w = W · Γ` with the matrix W
-//! computed by [`downwash_matrix`].
 
 use nalgebra::{DMatrix, DVector};
 

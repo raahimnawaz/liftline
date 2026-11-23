@@ -1,27 +1,12 @@
-"""Sectional 2D aerodynamic polars for the lifting-line solver.
+"""2D section polars for the lifting-line solver.
 
-The lifting-line solver closes its nonlinear system by querying, at every
-spanwise station and every iteration, a 2D sectional polar ``Cl(α, Re)`` and
-``Cd(α, Re)``. The solver does not care where the polar comes from — only
-that it implements the :class:`SectionalAero` protocol.
+Anything implementing :class:`SectionalAero` (``cl`` and ``cd`` of α, Re) works:
 
-This module ships three implementations spanning the project's data sources:
-
-* :class:`ThinAirfoilSection` — closed-form ``Cl = 2π(α − α_{L=0})`` from
-  ``aerosurrogate.physics``, with an optional parabolic profile-drag model
-  ``Cd = Cd0 + k·(Cl − Cl_min)²``. Inviscid in spirit. Used to validate
-  the solver against the elliptic-wing analytical identity
-  ``CDi = CL² / (π · AR)`` (which holds exactly only when the profile-drag
-  contribution is zeroed out).
-* :class:`FlatPlatePostStall` — Hoerner ``Cl = sin(2α)`` / ``Cd = 2 sin²(α)``.
-  This is *not* a thin-airfoil model in the linear regime, but it has a
-  smooth analytical stall at ``α = 45°``, which lets the nonlinear LLT
-  solver be exercised through and past stall without any external dependency.
-* :class:`NeuralFoilSection` — wraps Peter Sharpe's NeuralFoil (a neural-net
-  surrogate for XFOIL) so the LLT solver inherits NeuralFoil's viscous
-  panel-method fidelity. This is the production polar; using it here lifts
-  the project from "NeuralFoil is a 2D ceiling" to "NeuralFoil sets the
-  sectional polar inside a 3D wing solver."
+* :class:`ThinAirfoilSection`: ``Cl = 2π(α − α_L0)`` with an optional
+  parabolic drag polar. With zero drag it is the elliptic-wing test case.
+* :class:`FlatPlatePostStall`: Hoerner ``Cl = sin 2α``, ``Cd = 2 sin²α``,
+  with an analytic stall at 45° for exercising the solver past stall.
+* :class:`NeuralFoilSection`: NeuralFoil's viscous polar (optional dependency).
 """
 from __future__ import annotations
 
