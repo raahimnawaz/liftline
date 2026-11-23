@@ -32,7 +32,7 @@ This project asks two questions:
 | Labels | [NeuralFoil](https://github.com/peterdsharpe/NeuralFoil) (MIT), a neural surrogate of XFOIL. Rows with `analysis_confidence < 0.90` are dropped. **15,334 samples.** |
 | Features | 8 geometric (max camber, camber position, max thickness, leading-edge radius, trailing-edge wedge angle, thickness at 25/50/75% chord) + 3 flow (α, log₁₀ Re, n_crit) |
 
-**The split holds out whole airfoils.** `split_by_airfoil()` puts every row of a given shape in either train or test. With a row-level split, NACA 0012 at α = 5° could be in train and α = 6° in test, and the model would score well by interpolating along a curve it has already seen. Holding out shapes measures what a design loop actually needs: accuracy on a geometry the model has never seen.
+**The split holds out whole airfoils.** `split_by_airfoil()` (20% of shapes, seed 0) puts every row of a given shape in either train or test: 86 airfoils for training, and 21 airfoils (3,055 rows) for testing. With a row-level split, NACA 0012 at α = 5° could be in train and α = 6° in test, and the model would score well by interpolating along a curve it has already seen. Holding out shapes measures what a design loop actually needs: accuracy on a geometry the model has never seen.
 
 ## 3. Models and baseline
 
@@ -67,6 +67,19 @@ All numbers are on held-out airfoils. Reproduce with `python scripts/train_eval.
 | Random forest | 0.998 | 0.978 | 0.049 |
 | Ridge | 0.968 | 0.960 | 0.092 |
 | Thin-airfoil theory | — | 0.910 | 0.117 |
+
+The CV R² column uses 5-fold cross-validation over *rows* inside the training airfoils, so folds share airfoils and the score is optimistic. That is why it exceeds the test R² for the tree models. Use the test column, which is airfoil-held-out, as the real measure.
+
+### Lift error against angle of attack
+
+![CL error vs α: thin-airfoil theory against gradient boosting](../figures/ml_vs_physics_cl.png)
+
+The left panel plots every held-out point's absolute lift error. The right panel shows the median error with the interquartile band in 2° bins, and the shaded band is stall.
+
+- **Linear range:** both errors are small. From −4° to 4° the median error is 0.045 for the theory and 0.024 for GBM.
+- **From about 6° on:** the theory's error climbs steeply, because real flow begins to separate, which frictionless theory cannot represent. GBM's error stays flat. For α ≥ 10° the median error is 0.246 for the theory against 0.020 for GBM.
+
+The diagonal string of points that both methods miss at 0–9° is a single held-out airfoil, the Wortmann FX 72-LS-160, a high-camber, high-lift section. All of its largest errors are at Re = 10⁵, where both under-predict its lift by 0.4 to 0.7. It has the worst mean GBM error of any test airfoil (0.24), followed by another Wortmann section, the FX 63-137 (0.21).
 
 ### Lift by flight regime
 

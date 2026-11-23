@@ -15,12 +15,7 @@ TARGETS: list[str] = ["CL", "CD", "CM"]
 
 
 def build_models() -> dict[str, Pipeline]:
-    """Four-tier model zoo, monotonically increasing in flexibility.
-
-    The point of the zoo is to show how much each step of capacity buys us
-    on this dataset — a Ridge baseline that gets to R² ≈ 0.85 is a strong
-    statement that the problem is mostly linear in the chosen features.
-    """
+    """Four models in increasing flexibility, to show what each step of capacity buys."""
     return {
         "Linear (Ridge)": Pipeline([
             ("scaler", StandardScaler()),
